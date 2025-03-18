@@ -24,13 +24,43 @@ contract cargadoresElectricos {
         owner = msg.sender; //El owner es quien despliega el contrato
     }  
 
-    function chargeVehicle(uint256 _time, uint256 id) external {
+    //En este metodo el usuario propone un cargador para cargar su vehiculo, pero hay un problema y es que si la persona propone un cargador en uso pierde
+    //el dinero de haber preguntado por el cargador
+
+    function chargeVehicle(uint256 _time, uint256 id) external { 
         require(id > 0 || id <= nChargers, "ID no valido");
         require(log[id].user == address(0) || log[id].startTime + log[id].duration < block.timestamp, "Cargador en uso"); //Comprueba que el cargador no este en uso
         require(_time >= minTime, "El tiempo de carga es menor que 10min");
         require(_time <= maxTime, "El tiempo de carga es mayor que 2 horas");
         log[id] = ChargingSession(msg.sender, block.timestamp, _time);
         emit ChargingSessionEvent(msg.sender, block.timestamp, _time, id);
+    }
+
+    //En este metodo el sistema, eficientemente, asigna un cargador que tiene constancia de que no se esta usando, por lo que el usuario no pierde dinero
+
+    function chargeVehicleEfficient(uint256 _time) external {
+        require(id > 0 || id <= nChargers, "ID no valido");
+        require(log[id].user == address(0) || log[id].startTime + log[id].duration < block.timestamp, "Cargador en uso"); //Comprueba que el cargador no este en uso
+        require(_time >= minTime, "El tiempo de carga es menor que 10min");
+        require(_time <= maxTime, "El tiempo de carga es mayor que 2 horas");
+        log[id] = ChargingSession(msg.sender, block.timestamp, _time);
+        emit ChargingSessionEvent(msg.sender, block.timestamp, _time, id);
+    }
+
+
+    //El sistema también debe disponer de un administrador que sea capaz de vaciar la caja del contrato cuando le interese, solo él debe ser capaz de retirar esos fondos.
+
+    function redeemProfit() external {
+        require(msg.sender == owner, "Solo el owner puede retirar los fondos");
+        payable(owner).transfer(address(this).balance);
+    }
+
+    //Frontend
+
+    function findChargerAvailable() external pure returns (uint256, uint256) {
+        for (uint256 i = 0; ; ++i){
+
+        }
     }
 
 }
