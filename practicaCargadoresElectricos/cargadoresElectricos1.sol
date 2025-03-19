@@ -2,6 +2,11 @@
 pragma solidity >=0.7.1 <0.9.0;
 
 contract cargadoresElectricos {
+
+    //::::::::::::::::::::::::::::::::::::::::::::::
+    //          FUNCIONES DEL SMARTCONTRACT
+    //::::::::::::::::::::::::::::::::::::::::::::::
+
     event ChargingSessionEvent (address user, uint256 startTime, uint256 duration, uint256 id);
 
     struct ChargingSession{
@@ -80,7 +85,21 @@ contract cargadoresElectricos {
         payable(owner).transfer(address(this).balance);
     }
 
-    //Frontend
+
+    //:::::::::::::::::::::::::::::::::::::::::::
+    //          VIEWS PARA EL FRONTEND
+    //:::::::::::::::::::::::::::::::::::::::::::
+
+    function viewLog(uint256 index) public view returns (ChargingSession memory){ 
+        return log[index];
+    }
+
+
+
+    //::::::::::::::::::::::::::::::
+    //          FRONTEND
+    //::::::::::::::::::::::::::::::
+
 
     //Esta función busca los cargadores disponibles, recorriendo los indices mirando si tienen alguna dirección asignada
 
@@ -105,10 +124,6 @@ contract cargadoresElectricos {
         }
     }
 
-    //Views
-
-    function viewLog(uint256 index) public view returns (ChargingSession memory){ 
-        return log[index];
-    }
+    
 
 }
