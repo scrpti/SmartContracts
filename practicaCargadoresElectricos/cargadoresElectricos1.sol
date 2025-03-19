@@ -53,7 +53,8 @@ contract cargadoresElectricos {
         //Comprobamos si esta el value 
         require(msg.value >= _time * costPerMinute, "Debes pagar el coste de cargar");
         //Comprobamos si hay cargadores
-        require(checkAvailability(nChargers, cAvailable) == 0, "No hay cargadores disponibles");
+        cAvailable = checkAvailability(nChargers, cAvailable);
+        require(cAvailable > 0, "No hay cargadores disponibles");
         //Comprobamos que el tiempo de carga sea valido
         require(_time >= minTime, "El tiempo de carga es menor que 10min");
         require(_time <= maxTime, "El tiempo de carga es mayor que 2 horas");
@@ -63,7 +64,7 @@ contract cargadoresElectricos {
         //------------------------------------
 
         //Buscamos un cargador disponible
-        uint256 id = findChargerAvailable(nChargers, cAvailable);
+        uint256 id = findChargerAvailable(nChargers);
         //Asignamos el cargador
         log[id] = ChargingSession(msg.sender, block.timestamp, _time);
         //Emitimos el evento
@@ -103,8 +104,8 @@ contract cargadoresElectricos {
 
     //Esta función busca los cargadores disponibles, recorriendo los indices mirando si tienen alguna dirección asignada
 
-    function findChargerAvailable(uint256 nChargers, uint256 cAvailable) public view returns (uint256) {
-        for (uint256 i = 0; i < nChargers ; ++i){
+    function findChargerAvailable(uint256 numberChargers) public view returns (uint256) {
+        for (uint256 i = 0; i < numberChargers ; ++i){
             ChargingSession memory session = viewLog(i);
             if(session.user == address(0)){
                 return i;
@@ -112,16 +113,21 @@ contract cargadoresElectricos {
         }
     }
 
-    //Esta función actualiza las sesiones, en caso de que ya se haya pasado su tiempo se elimina la sesión del mapping de sesiones 
+    //Esta función actualiza las sesiones, en caso de que ya se haya pasado su tiempo se elimina la sesión del mapping de sesiones, devuelve una tupla de si se 
+    //ha desconectado algun cargador o si en otro caso no como primer argumento, en el segundo argumento se devuelve el numero de cargadores disponibles 
+    //actualizado
 
-    function checkAvailability(uint256 nChargers, uint256 cAvailable) public returns (uint256) {
-        for (uint256 i = 0; i < nChargers ; ++i){
+    function checkAvailability(uint256 numberChargers, uint256 chargersAvailable) public returns (uint256) {
+        bool foundAny = false;
+        for (uint256 i = 0; i < numberChargers ; ++i){
             ChargingSession memory session = viewLog(i);
             if(session.user != address(0) && (session.startTime + session.duration) < block.timestamp){
                 emptyLogI(i);
-                cAvailable++;
+                chargersAvailable++;
+                foundAny = true;
             }
         }
+        return chargersAvailable;
     }
 
     
